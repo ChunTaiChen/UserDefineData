@@ -111,7 +111,12 @@ namespace UserDefineData
             // 取得UDT的資料
             List<DAL.UserDefData> userDefDataList = GetDataFromUDT(StudentID);
             // 依照uid反向排序
-            userDefDataList.Sort(SortUserDefDataDesc);
+            userDefDataList.Sort(delegate(DAL.UserDefData obj1, DAL.UserDefData obj2)
+            {
+                string compare1 = (obj1.UID).PadLeft(20, '0');
+                string compare2 = (obj2.UID).PadLeft(20, '0');
+                return compare2.CompareTo(compare1);
+            });
 
             // 找出重複的，並保留新的資料(uid比較大的為新的資料)
             foreach (DAL.UserDefData rec in userDefDataList)
@@ -134,7 +139,7 @@ namespace UserDefineData
 
             // 處理完需要刪除的名單後, 正向排序
             userDefDataList = temp.Values.ToList();
-            userDefDataList.Sort(SortUserDefDataAsc);
+            userDefDataList.Reverse();
 
             // 取得自訂欄位設定，沒有使用空白
             int index = 0;
@@ -164,32 +169,5 @@ namespace UserDefineData
 
             return result;
         }
-
-        /// <summary>
-        /// 依照uid正向排序 (add by 小郭, 2013/12/16)
-        /// </summary>
-        /// <param name="obj1"></param>
-        /// <param name="obj2"></param>
-        /// <returns></returns>
-        public static int SortUserDefDataAsc(DAL.UserDefData obj1, DAL.UserDefData obj2)
-        {
-            string compare1 = (obj1.UID).PadLeft(20, '0');
-            string compare2 = (obj2.UID).PadLeft(20, '0');
-            return compare1.CompareTo(compare2);
-        }
-
-        /// <summary>
-        /// 依照uid反向排序 (add by 小郭, 2013/12/16)
-        /// </summary>
-        /// <param name="obj1"></param>
-        /// <param name="obj2"></param>
-        /// <returns></returns>
-        public static int SortUserDefDataDesc(DAL.UserDefData obj1, DAL.UserDefData obj2)
-        {
-            string compare1 = (obj1.UID).PadLeft(20, '0');
-            string compare2 = (obj2.UID).PadLeft(20, '0');
-            return compare2.CompareTo(compare1);
-        }
-
     }
 }
