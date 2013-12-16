@@ -94,5 +94,102 @@ namespace UserDefineData
             accHelper.DeletedValues(data.ToArray());        
         }
 
+        /// <summary>
+        /// 取得單筆學生UDT資料，包括"自定資料管理" (add by 小郭, 2013/12/16)
+        /// </summary>
+        /// <param name="StudentID"></param>
+        /// <returns></returns>
+        public static List<DAL.UserDefData> GetDataFromUDTIncludeUserConfig(string StudentID)
+        {
+            // 回傳資料
+            List<DAL.UserDefData> result = new List<DAL.UserDefData>();
+            // 暫存資料, Key: 欄位名稱; Value: DAL.UserDefData
+            Dictionary<string, DAL.UserDefData> temp = new Dictionary<string, UserDefineData.DAL.UserDefData>();
+            // 刪除名單, 用來刪除可能重複的欄位名稱
+            List<DAL.UserDefData> DeleteList = new List<UserDefineData.DAL.UserDefData>();
+
+            // 取得UDT的資料
+            List<DAL.UserDefData> userDefDataList = GetDataFromUDT(StudentID);
+            // 依照uid反向排序
+            userDefDataList.Sort(SortUserDefDataDesc);
+
+            // 找出重複的，並保留新的資料(uid比較大的為新的資料)
+            foreach (DAL.UserDefData rec in userDefDataList)
+            {
+                if (!temp.ContainsKey(rec.FieldName))
+                {
+                    rec.isNull = false;
+                    temp.Add(rec.FieldName, rec);
+                }
+                else
+                {
+                    // 假如找到重複的欄位名稱, 加入刪除名單, 因為排序過, 所以會刪除比較舊的資料
+                    rec.Deleted = true;
+                    DeleteList.Add(rec);
+                }
+            }
+
+            if (DeleteList.Count > 0)
+                DeleteDataToUDT(DeleteList);
+
+            // 處理完需要刪除的名單後, 正向排序
+            userDefDataList = temp.Values.ToList();
+            userDefDataList.Sort(SortUserDefDataAsc);
+
+            // 取得自訂欄位設定，沒有使用空白
+            int index = 0;
+            foreach (string FName in Global.GetUserConfigData().Keys)
+            {
+                DAL.UserDefData ud;
+                if (!temp.ContainsKey(FName))
+                {
+                    ud = new UserDefineData.DAL.UserDefData();
+                    ud.RefID = StudentID;
+                    ud.FieldName = FName;
+                    ud.Value = "";
+                }
+                else
+                {
+                    ud = temp[FName];
+                    // 先移除既有的資料
+                    userDefDataList.Remove(ud);
+                }
+
+                // 新增到前面
+                userDefDataList.Insert(index++, ud);
+            }
+
+            // 回傳List
+            result = userDefDataList;
+
+            return result;
+        }
+
+        /// <summary>
+        /// 依照uid正向排序 (add by 小郭, 2013/12/16)
+        /// </summary>
+        /// <param name="obj1"></param>
+        /// <param name="obj2"></param>
+        /// <returns></returns>
+        public static int SortUserDefDataAsc(DAL.UserDefData obj1, DAL.UserDefData obj2)
+        {
+            string compare1 = (obj1.UID).PadLeft(20, '0');
+            string compare2 = (obj2.UID).PadLeft(20, '0');
+            return compare1.CompareTo(compare2);
+        }
+
+        /// <summary>
+        /// 依照uid反向排序 (add by 小郭, 2013/12/16)
+        /// </summary>
+        /// <param name="obj1"></param>
+        /// <param name="obj2"></param>
+        /// <returns></returns>
+        public static int SortUserDefDataDesc(DAL.UserDefData obj1, DAL.UserDefData obj2)
+        {
+            string compare1 = (obj1.UID).PadLeft(20, '0');
+            string compare2 = (obj2.UID).PadLeft(20, '0');
+            return compare2.CompareTo(compare1);
+        }
+
     }
 }

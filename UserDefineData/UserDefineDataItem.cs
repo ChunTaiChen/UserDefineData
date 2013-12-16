@@ -69,7 +69,9 @@ namespace UserDefineData
 
         void _BGWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            _UserDefDataList = UDTTransfer.GetDataFromUDT(PrimaryKey);
+            // modify by 小郭, 2013/12/16
+            // _UserDefDataList = UDTTransfer.GetDataFromUDT(PrimaryKey);
+            _UserDefDataList = UDTTransfer.GetDataFromUDTIncludeUserConfig(PrimaryKey);
         }
 
         /// <summary>
